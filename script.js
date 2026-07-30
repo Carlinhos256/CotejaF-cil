@@ -69,7 +69,7 @@ const inputs = [
     document.getElementById('info-dest'),
     document.getElementById('info-cruise'),
     document.getElementById('info-squawk')
-].filter(Boolean); // Remove elementos nulos caso algum ID não exista no HTML
+].filter(Boolean);
 
 const textPilot = document.getElementById('pilot-speaks');
 const textReadback = document.getElementById('pilot-readback');
@@ -102,14 +102,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-// --- Função Oficial de Importação do SimBrief (Com Proxy CORS) ---
+// --- Função de Importação Direta do SimBrief (SEM PROXY) ---
 async function importSimBrief() {
     const userField = document.getElementById('simbrief-username');
-    // Busca o botão de forma segura pelo seletor ou onclick
     const btn = document.querySelector('button[onclick*="importSimBrief"]') || event?.target;
     
     if (!userField || !userField.value.trim()) {
-        alert('Por favor, digite seu ID numérico do SimBrief!');
+        alert('Por favor, digite seu ID ou Username do SimBrief!');
         return;
     }
 
@@ -119,52 +118,53 @@ async function importSimBrief() {
 
     // Detecta se digitou apenas números (ID) ou texto (Username)
     const paramName = /^\d+$/.test(userId) ? 'userid' : 'username';
-    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://www.simbrief.com/api/xml.fetch.php?${paramName}=${userId}`)}`;
+
+    // URL DIRETA do SimBrief pedindo formato JSON, sem passar por site de terceiros
+    const url = `https://www.simbrief.com/api/xml.fetch.php?${paramName}=${userId}&json=1`;
 
     try {
-        const response = await fetch(proxyUrl);
+        const response = await fetch(url);
         if (!response.ok) throw new Error('Falha na resposta do servidor');
         
-        const textData = await response.text();
-        const parser = new DOMParser();
-        const xmlDoc = parser.parseFromString(textData, "text/xml");
+        const dados = await response.json();
 
-        const originNode = xmlDoc.querySelector("origin ICAO");
-        if (originNode) {
-            const airline = xmlDoc.querySelector("general icao_airline")?.textContent || "";
-            const flightNum = xmlDoc.querySelector("general flight_number")?.textContent || "";
-            const callsign = airline + flightNum;
-            
-            const origin = xmlDoc.querySelector("origin ICAO")?.textContent || "SBGR";
-            const dest = xmlDoc.querySelector("destination ICAO")?.textContent || "SBPA";
-            const cruise = xmlDoc.querySelector("general initial_altitude")?.textContent || "36000";
-            const squawk = xmlDoc.querySelector("atc squawk")?.textContent || "1000";
-
-            // Atribuindo aos campos caso existam
-            setVal('info-callsign', callsign || "GLO1932");
-            setVal('info-origin', origin);
-            setVal('info-dest', dest);
-            setVal('info-cruise', `FL${Math.round(parseInt(cruise) / 100)}`);
-            setVal('info-squawk', squawk);
-
-            inputs.forEach(input => {
-                if (input) localStorage.setItem(input.id, input.value);
-            });
-
-            updatePhraseology();
-            updateFrequencies();
-            
-            if (btn) {
-                btn.textContent = '✅ Importado!';
-                setTimeout(() => { btn.textContent = originalText; }, 2000);
-            }
-        } else {
-            alert('Plano de voo não encontrado. Certifique-se de que gerou o plano no site do SimBrief e digitou o User ID correto.');
+        // Se o SimBrief retornar erro (geralmente porque o plano não foi gerado)
+        if (dados.fetch && dados.fetch.status === "Error") {
+            alert('Plano de voo não encontrado. Certifique-se de que clicou no botão "GENERATE FLIGHT" no site do SimBrief.');
             if (btn) btn.textContent = originalText;
+            return;
         }
+
+        // Puxando os dados limpos do JSON
+        const callsign = (dados.general?.icao_airline || "") + (dados.general?.flight_number || "");
+        const origin = dados.origin?.icao_code || "";
+        const dest = dados.destination?.icao_code || "";
+        const cruise = dados.general?.initial_altitude || "";
+        const squawk = dados.atc?.squawk || "";
+
+        // Preenchendo a tela
+        setVal('info-callsign', callsign || "GLO1932");
+        setVal('info-origin', origin);
+        setVal('info-dest', dest);
+        if (cruise) setVal('info-cruise', `FL${Math.round(parseInt(cruise) / 100)}`);
+        setVal('info-squawk', squawk);
+
+        // Salvando para não apagar se recarregar a página
+        inputs.forEach(input => {
+            if (input) localStorage.setItem(input.id, input.value);
+        });
+
+        updatePhraseology();
+        updateFrequencies();
+        
+        if (btn) {
+            btn.textContent = '✅ Importado!';
+            setTimeout(() => { btn.textContent = originalText; }, 2000);
+        }
+
     } catch (error) {
-        console.error(error);
-        alert('Erro ao conectar com o SimBrief. Verifique se o ID está correto.');
+        console.error("Erro no fetch:", error);
+        alert('Erro ao conectar com o SimBrief. Verifique se o ID ou Username está correto.');
         if (btn) btn.textContent = originalText;
     }
 }
