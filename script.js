@@ -1,0 +1,442 @@
+// Dados combinados de Checklists
+const checklistsData = {
+    "1": [
+        "FMC / MCDU Inicializado", 
+        "Rota Inserida e Checada no FMS", 
+        "Combustível Abastecido e Checado", 
+        "APU Ligado", 
+        "Portas Fechadas e Travadas",
+        "📞 Copiar Informação ATIS Atual",
+        "📞 Solicitar Autorização IFR (Clearance)"
+    ],
+    "2": [
+        "Beacon Light ON", 
+        "Portas Armadas (Crosscheck)",
+        "Freio de Estacionamento Setado", 
+        "📞 Solicitar Pushback e Acionamento",
+        "Motores Acionados e Estabilizados", 
+        "APU Desligado",
+        "Flight Controls Checados", 
+        "Taxi Light ON",
+        "📞 Solicitar Instruções de Táxi"
+    ],
+    "3": [
+        "Flaps Configurados para Decolagem", 
+        "Auto Brake RTO", 
+        "Transponder TA/RA (Modo Charlie)", 
+        "Strobe & Landing Lights ON", 
+        "📞 Reportar Pronto no Ponto de Espera",
+        "📞 Confirmar Autorização de Decolagem"
+    ],
+    "4": [
+        "Trem de Pouso UP", 
+        "Flaps UP", 
+        "Landing Lights OFF (Acima de 10.000ft)", 
+        "Altímetro STD (No Nível de Transição)", 
+        "📞 Reportar Subida ao Controle",
+        "Monitoramento de Cruzeiro"
+    ],
+    "5": [
+        "ATIS de Chegada Copiado",
+        "Altímetro QNH Local Ajustado", 
+        "Auto Brake Setado (Pouso)", 
+        "📞 Solicitar / Confirmar Procedimento de Chegada",
+        "Flaps Configurados para Pouso", 
+        "Trem de Pouso DOWN", 
+        "Speed Brakes Armados", 
+        "📞 Confirmar Autorização de Pouso"
+    ]
+};
+
+let currentTab = "1";
+
+const tabs = document.querySelectorAll('.tab-btn');
+const checklistContainer = document.getElementById('checklist-container');
+const progressBar = document.getElementById('progress-bar');
+const progressText = document.getElementById('progress-text');
+
+const inputs = [
+    document.getElementById('input-atis'),
+    document.getElementById('input-gate'),
+    document.getElementById('input-runway'),
+    document.getElementById('input-sid'),
+    document.getElementById('input-transition'),
+    document.getElementById('input-alt'),
+    document.getElementById('input-taxi'),
+    document.getElementById('simbrief-username'),
+    document.getElementById('info-callsign'),
+    document.getElementById('info-origin'),
+    document.getElementById('info-dest'),
+    document.getElementById('info-cruise'),
+    document.getElementById('info-squawk')
+];
+
+const textPilot = document.getElementById('pilot-speaks');
+const textReadback = document.getElementById('pilot-readback');
+
+document.addEventListener('DOMContentLoaded', () => {
+    loadSavedData();
+    renderChecklist(currentTab);
+    updatePhraseology();
+    updateFrequencies();
+    
+    tabs.forEach(tab => {
+        tab.addEventListener('click', (e) => {
+            tabs.forEach(t => t.classList.remove('active'));
+            e.target.classList.add('active');
+            
+            currentTab = e.target.getAttribute('data-tab');
+            renderChecklist(currentTab);
+            updatePhraseology();
+        });
+    });
+
+    inputs.forEach(input => {
+        if (input) {
+            input.addEventListener('input', () => {
+                localStorage.setItem(input.id, input.value); 
+                updatePhraseology();
+                if (input.id === 'info-origin') updateFrequencies();
+            });
+        }
+    });
+});
+
+// --- Função Oficial de Importação do SimBrief (Com Proxy CORS) ---
+async function importSimBrief() {
+    const userField = document.getElementById('simbrief-username');
+    const btn = event.target;
+    if (!userField || !userField.value.trim()) {
+        alert('Por favor, digite seu ID numérico do SimBrief!');
+        return;
+    }
+
+    const userId = userField.value.trim();
+    const originalText = btn.textContent;
+    btn.textContent = '⏳ Buscando...';
+
+    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://www.simbrief.com/api/xml.fetch.php?userid=${userId}`)}`;
+
+    try {
+        const response = await fetch(proxyUrl);
+        const textData = await response.text();
+        
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(textData, "text/xml");
+
+        const originNode = xmlDoc.querySelector("origin ICAO");
+        if (originNode) {
+            const airline = xmlDoc.querySelector("general icao_airline")?.textContent || "";
+            const flightNum = xmlDoc.querySelector("general flight_number")?.textContent || "";
+            const callsign = airline + flightNum;
+            
+            const origin = xmlDoc.querySelector("origin ICAO")?.textContent || "SBGR";
+            const dest = xmlDoc.querySelector("destination ICAO")?.textContent || "SBPA";
+            const cruise = xmlDoc.querySelector("general initial_altitude")?.textContent || "36000";
+            const squawk = xmlDoc.querySelector("atc squawk")?.textContent || "1000";
+
+            document.getElementById('info-callsign').value = callsign || "GLO1932";
+            document.getElementById('info-origin').value = origin;
+            document.getElementById('info-dest').value = dest;
+            document.getElementById('info-cruise').value = `FL${Math.round(parseInt(cruise) / 100)}`;
+            document.getElementById('info-squawk').value = squawk;
+
+            inputs.forEach(input => {
+                if (input) localStorage.setItem(input.id, input.value);
+            });
+
+            updatePhraseology();
+            updateFrequencies();
+            
+            btn.textContent = '✅ Importado!';
+            setTimeout(() => { btn.textContent = originalText; }, 2000);
+        } else {
+            alert('Plano de voo não encontrado. Certifique-se de que gerou o plano no site do SimBrief e digitou o User ID correto.');
+            btn.textContent = originalText;
+        }
+    } catch (error) {
+        console.error(error);
+        alert('Erro ao conectar com o SimBrief. Verifique se o ID está correto.');
+        btn.textContent = originalText;
+    }
+}
+
+// --- Atualizar Frequências Dinâmicas baseadas na Origem ---
+function updateFrequencies() {
+    const originEl = document.getElementById('info-origin');
+    const icao = originEl ? originEl.value.trim().toUpperCase() : "SBGR";
+    const freqList = document.getElementById('freq-list-content');
+    
+    if (!freqList) return;
+
+    const databaseFreqs = {
+        "SBGR": [
+            {name: "ATIS", num: "127.750"},
+            {name: "DEL", num: "121.250"},
+            {name: "GND", num: "121.500"},
+            {name: "TWR", num: "118.400"},
+            {name: "APP", num: "119.800"}
+        ],
+        "SBSP": [
+            {name: "ATIS", num: "135.100"},
+            {name: "GND", num: "121.700"},
+            {name: "TWR", num: "118.050"},
+            {name: "APP", num: "119.350"}
+        ],
+        "SBGL": [
+            {name: "ATIS", num: "127.600"},
+            {name: "DEL", num: "121.550"},
+            {name: "GND", num: "121.900"},
+            {name: "TWR", num: "118.100"},
+            {name: "APP", num: "119.100"}
+        ],
+        "SBPA": [
+            {name: "ATIS", num: "127.850"},
+            {name: "GND", num: "121.750"},
+            {name: "TWR", num: "118.300"},
+            {name: "APP", num: "119.500"}
+        ]
+    };
+
+    const freqs = databaseFreqs[icao] || [
+        {name: "ATIS", num: "127.000"},
+        {name: "GND", num: "121.900"},
+        {name: "TWR", num: "118.100"},
+        {name: "APP", num: "119.000"}
+    ];
+
+    freqList.innerHTML = '';
+    freqs.forEach(f => {
+        const li = document.createElement('li');
+        li.innerHTML = `<span class="freq-name">${icao}_${f.name}</span> <span class="freq-num">${f.num}</span>`;
+        freqList.appendChild(li);
+    });
+}
+
+function renderChecklist(tabId) {
+    const items = checklistsData[tabId] || [];
+    if (!checklistContainer) return;
+    
+    checklistContainer.innerHTML = '';
+    
+    items.forEach((item, index) => {
+        const div = document.createElement('div');
+        div.className = 'check-item';
+        
+        const checkboxId = `check-${tabId}-${index}`;
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.id = checkboxId;
+        
+        const savedState = localStorage.getItem(checkboxId);
+        if (savedState === 'true') {
+            checkbox.checked = true;
+        }
+        
+        checkbox.addEventListener('change', (e) => {
+            localStorage.setItem(e.target.id, e.target.checked);
+            updateProgress();
+        });
+        
+        const label = document.createElement('label');
+        label.htmlFor = checkboxId;
+        label.textContent = item;
+        
+        div.appendChild(checkbox);
+        div.appendChild(label);
+        checklistContainer.appendChild(div);
+    });
+    
+    updateProgress();
+}
+
+function updateProgress() {
+    const checkboxes = checklistContainer.querySelectorAll('input[type="checkbox"]');
+    const total = checkboxes.length;
+    if(total === 0) {
+        progressBar.style.width = '0%';
+        progressText.textContent = '0%';
+        return;
+    }
+    
+    const checked = checklistContainer.querySelectorAll('input[type="checkbox"]:checked').length;
+    const percentage = Math.round((checked / total) * 100);
+    
+    progressBar.style.width = `${percentage}%`;
+    progressText.textContent = `${percentage}%`;
+}
+
+function loadSavedData() {
+    inputs.forEach(input => {
+        if (input) {
+            const savedValue = localStorage.getItem(input.id);
+            if (savedValue !== null) {
+                input.value = savedValue;
+            }
+        }
+    });
+}
+
+function copyText(elementId) {
+    const textarea = document.getElementById(elementId);
+    if (!textarea) return;
+
+    textarea.select();
+    navigator.clipboard.writeText(textarea.value).then(() => {
+        const btn = event.target;
+        const originalText = btn.textContent;
+        
+        btn.textContent = '✅ Copiado!';
+        btn.style.backgroundColor = 'var(--accent-green)';
+        btn.style.color = 'var(--bg-dark)';
+        
+        setTimeout(() => {
+            btn.textContent = originalText;
+            btn.style.backgroundColor = '';
+            btn.style.color = '';
+        }, 1500);
+    });
+}
+
+function formatSquawk(squawk) {
+    if (!squawk) return "____";
+    return squawk.split('').join(' ');
+}
+
+function updatePhraseology() {
+    const getValue = (id, fallback) => {
+        const el = document.getElementById(id);
+        return el && el.value.trim() !== '' ? el.value.toUpperCase() : fallback;
+    };
+
+    const atis = getValue('input-atis', '[ATIS]');
+    const gate = getValue('input-gate', '[PORTÃO]');
+    const rwy = getValue('input-runway', '[PISTA]');
+    const sid = getValue('input-sid', '[SID]');
+    
+    const transInput = document.getElementById('input-transition');
+    const trans = transInput && transInput.value.trim() !== '' ? transInput.value.toUpperCase() : '';
+    
+    const alt = getValue('input-alt', '[ALTITUDE]');
+    const taxi = getValue('input-taxi', '[TAXIWAYS]');
+    const callsign = getValue('info-callsign', '[CALLSIGN]');
+    const dest = getValue('info-dest', '[DESTINO]');
+    const origin = getValue('info-origin', '[ORIGEM]');
+    const level = getValue('info-cruise', '[NÍVEL]');
+    
+    const squawkEl = document.getElementById('info-squawk');
+    const squawk = squawkEl && squawkEl.value.trim() !== '' ? formatSquawk(squawkEl.value) : "____";
+    
+    const transicaoTexto = trans ? ` transição ${trans},` : "";
+
+    let pilot = "";
+    let readback = "";
+
+    switch(currentTab) {
+        case "1": 
+            pilot = `${origin} Tráfego, ${callsign}, no portão ${gate}, com informação ${atis}, solicita autorização de tráfego IFR para ${dest}, nível planejado ${level}.`;
+            readback = `Autorizado IFR para ${dest}, via ${sid}${transicaoTexto} pista ${rwy}, subida inicial ${alt}, transponder ${squawk}. ${callsign}.`;
+            break;
+            
+        case "2": 
+            pilot = `${origin} Solo, ${callsign}, solicita acionamento e pushback no portão ${gate}.\n\n(Após acionamento)\n${origin} Solo, ${callsign}, solicita instruções de táxi.`;
+            readback = `Acionamento e pushback aprovados, ${callsign}.\n\nTáxi via ${taxi} para o ponto de espera da pista ${rwy}, ${callsign}.`;
+            break;
+            
+        case "3": 
+            pilot = `${origin} Torre, ${callsign}, no ponto de espera da pista ${rwy}, pronto para decolagem.`;
+            readback = `Livre decolagem pista ${rwy}, vento [Graus/Nós], ${callsign}.`;
+            break;
+            
+        case "4": 
+            pilot = `Controle, ${callsign} decolado de ${origin}, cruzando [Altitude Atual] subindo para ${alt} na saída ${sid}.`;
+            readback = `Subida autorizada para nível de cruzeiro ${level}, direto [Próximo Fixo], ${callsign}.`;
+            break;
+            
+        case "5": 
+            pilot = `Aproximação, ${callsign} descendo para [Altitude], com informação ${atis}, solicita vetoração / procedimento para pista ${rwy} em ${dest}.`;
+            readback = `Ciente, autorizado procedimento [Nome/ILS] pista ${rwy}, reportará estabelecido, ${callsign}.\n\n(Com a Torre)\nLivre pouso pista ${rwy}, ${callsign}.`;
+            break;
+    }
+
+    if (textPilot) textPilot.value = pilot;
+    if (textReadback) textReadback.value = readback;
+}
+
+// --- Conversor Instantâneo de Unidades ---
+const inHgInput = document.getElementById('conv-inhg');
+const hPaInput = document.getElementById('conv-hpa');
+const lbsInput = document.getElementById('conv-lbs');
+const kgInput = document.getElementById('conv-kg');
+
+if (inHgInput && hPaInput) {
+    inHgInput.addEventListener('input', () => {
+        if (inHgInput.value) {
+            hPaInput.value = (parseFloat(inHgInput.value) * 33.8639).toFixed(0);
+        } else {
+            hPaInput.value = '';
+        }
+    });
+
+    hPaInput.addEventListener('input', () => {
+        if (hPaInput.value) {
+            inHgInput.value = (parseFloat(hPaInput.value) / 33.8639).toFixed(2);
+        } else {
+            hPaInput.value = '';
+        }
+    });
+}
+
+if (lbsInput && kgInput) {
+    lbsInput.addEventListener('input', () => {
+        if (lbsInput.value) {
+            kgInput.value = (parseFloat(lbsInput.value) * 0.453592).toFixed(0);
+        } else {
+            kgInput.value = '';
+        }
+    });
+
+    kgInput.addEventListener('input', () => {
+        if (kgInput.value) {
+            lbsInput.value = (parseFloat(kgInput.value) / 0.453592).toFixed(0);
+        } else {
+            lbsInput.value = '';
+        }
+    });
+}
+
+// --- Sistema de Redimensionamento do Painel Direito ---
+const resizer = document.getElementById('resizer');
+let isResizing = false;
+
+if (resizer) {
+    const savedWidth = localStorage.getItem('panel-width');
+    if (savedWidth) {
+        document.documentElement.style.setProperty('--right-panel-width', savedWidth);
+    }
+
+    resizer.addEventListener('mousedown', (e) => {
+        isResizing = true;
+        resizer.classList.add('active');
+        document.body.style.cursor = 'col-resize';
+        e.preventDefault();
+    });
+
+    document.addEventListener('mousemove', (e) => {
+        if (!isResizing) return;
+        let newWidth = window.innerWidth - e.clientX;
+        if (newWidth < 260) newWidth = 260;
+        if (newWidth > 600) newWidth = 600;
+        document.documentElement.style.setProperty('--right-panel-width', `${newWidth}px`);
+    });
+
+    document.addEventListener('mouseup', () => {
+        if (isResizing) {
+            isResizing = false;
+            resizer.classList.remove('active');
+            document.body.style.cursor = '';
+            const finalWidth = getComputedStyle(document.documentElement).getPropertyValue('--right-panel-width');
+            localStorage.setItem('panel-width', finalWidth.trim());
+        }
+    });
+}

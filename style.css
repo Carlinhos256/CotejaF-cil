@@ -1,0 +1,355 @@
+/* Importando uma fonte moderna do Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+    --bg-dark: #0F1115;
+    --bg-panel: #181A20;
+    --bg-input: #22252B;
+    --text-main: #E2E8F0;
+    --text-muted: #94A3B8;
+    --accent-green: #10B981;
+    --accent-glow: rgba(16, 185, 129, 0.25);
+    --border-color: #2D313A;
+    --highlight: #1F2229;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+}
+
+body {
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    height: 100vh;
+    overflow: hidden;
+}
+
+::-webkit-scrollbar {
+    width: 8px;
+}
+::-webkit-scrollbar-track {
+    background: var(--bg-dark);
+}
+::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
+}
+
+.app-container {
+    display: grid;
+    grid-template-columns: 260px 1fr 4px var(--right-panel-width, 320px); 
+    height: 100vh;
+}
+
+.sidebar {
+    background-color: var(--bg-panel);
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    box-shadow: 4px 0 15px rgba(0,0,0,0.2);
+    z-index: 10;
+}
+
+.logo {
+    padding: 25px 20px;
+    border-bottom: 1px solid var(--border-color);
+    text-align: center;
+}
+
+.logo h2 {
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.logo p {
+    color: var(--accent-green);
+    font-size: 0.8rem;
+    font-weight: 500;
+    margin-top: 5px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+#nav-tabs {
+    display: flex;
+    flex-direction: column;
+    padding: 15px 0;
+}
+
+.tab-btn {
+    background: transparent;
+    color: var(--text-muted);
+    border: none;
+    padding: 16px 24px;
+    text-align: left;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-left: 4px solid transparent;
+}
+
+.tab-btn:hover {
+    background-color: var(--highlight);
+    color: var(--text-main);
+}
+
+.tab-btn.active {
+    background-color: var(--highlight);
+    color: var(--text-main);
+    border-left: 4px solid var(--accent-green);
+    font-weight: 600;
+}
+
+.main-content {
+    display: flex;
+    flex-direction: column;
+    padding: 25px;
+    overflow-y: auto;
+    gap: 20px;
+}
+
+.progress-header, .checklist-section, .inputs-section {
+    background-color: var(--bg-panel);
+    padding: 20px 25px;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.progress-header h3, .checklist-section h3, .inputs-section h3 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--text-main);
+    margin-bottom: 15px;
+}
+
+.progress-bar-container {
+    width: 100%;
+    height: 8px;
+    background-color: var(--bg-input);
+    border-radius: 10px;
+    margin-top: 10px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    background-color: var(--accent-green);
+    width: 0%;
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.checklist-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.check-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px;
+    border-radius: 6px;
+    transition: background 0.2s;
+}
+
+.check-item:hover {
+    background-color: var(--highlight);
+}
+
+.check-item input[type="checkbox"] {
+    accent-color: var(--accent-green);
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.check-item label {
+    font-size: 0.95rem;
+    cursor: pointer;
+    user-select: none;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.input-group label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text-muted);
+}
+
+.input-group input {
+    background-color: var(--bg-input);
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+    padding: 10px 14px;
+    border-radius: 6px;
+    outline: none;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+}
+
+.input-group input:focus {
+    border-color: var(--accent-green);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.phraseology-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    flex-grow: 1;
+}
+
+.phrase-box {
+    background-color: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.phrase-box-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 20px;
+    background-color: var(--highlight);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.phrase-box-header h4 {
+    padding: 0;
+    border: none;
+    background: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.copy-btn {
+    background-color: var(--bg-input);
+    color: var(--accent-green);
+    border: 1px solid var(--border-color);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.copy-btn:hover {
+    background-color: var(--accent-green);
+    color: var(--bg-dark);
+}
+
+.phrase-box textarea {
+    background-color: transparent;
+    color: var(--accent-green);
+    border: none;
+    padding: 20px;
+    resize: none;
+    flex-grow: 1;
+    font-size: 1.25rem;
+    line-height: 1.6;
+    outline: none;
+    font-family: 'Inter', sans-serif;
+    min-height: 200px;
+}
+
+.resizer {
+    background-color: var(--border-color);
+    cursor: col-resize;
+    transition: background-color 0.2s ease;
+    z-index: 20;
+}
+
+.resizer:hover, .resizer.active {
+    background-color: var(--accent-green);
+}
+
+.info-panel {
+    background-color: var(--bg-panel);
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+    gap: 35px;
+    overflow-y: auto;
+    box-shadow: -4px 0 15px rgba(0,0,0,0.2);
+    z-index: 10;
+}
+
+.info-panel h3 {
+    margin-bottom: 20px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-main);
+    border-bottom: 2px solid var(--accent-green);
+    padding-bottom: 8px;
+    display: inline-block;
+}
+
+.simbrief-data .input-group {
+    margin-bottom: 15px;
+}
+
+.freq-list {
+    list-style: none;
+    background-color: var(--highlight);
+    border-radius: 8px;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+}
+
+.freq-list li {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 8px;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 0.9rem;
+}
+
+.freq-list li:last-child {
+    border-bottom: none;
+}
+
+.freq-name {
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.freq-num {
+    color: var(--accent-green);
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.converter-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.converter-data h3 {
+    margin-bottom: 20px;
+}
