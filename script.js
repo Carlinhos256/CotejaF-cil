@@ -1,4 +1,4 @@
-// Dados combinados de Checklists
+// --- Dados combinados de Checklists ---
 const checklistsData = {
     "1": [
         "FMC / MCDU Inicializado", 
@@ -69,7 +69,7 @@ const inputs = [
     document.getElementById('info-dest'),
     document.getElementById('info-cruise'),
     document.getElementById('info-squawk')
-];
+].filter(Boolean); // Remove elementos nulos caso algum ID não exista no HTML
 
 const textPilot = document.getElementById('pilot-speaks');
 const textReadback = document.getElementById('pilot-readback');
@@ -105,22 +105,25 @@ document.addEventListener('DOMContentLoaded', () => {
 // --- Função Oficial de Importação do SimBrief (Com Proxy CORS) ---
 async function importSimBrief() {
     const userField = document.getElementById('simbrief-username');
-    const btn = event.target;
+    // Busca o botão de forma segura pelo seletor ou onclick
+    const btn = document.querySelector('button[onclick*="importSimBrief"]') || event?.target;
+    
     if (!userField || !userField.value.trim()) {
         alert('Por favor, digite seu ID numérico do SimBrief!');
         return;
     }
 
     const userId = userField.value.trim();
-    const originalText = btn.textContent;
-    btn.textContent = '⏳ Buscando...';
+    const originalText = btn ? btn.textContent : 'Importar';
+    if (btn) btn.textContent = '⏳ Buscando...';
 
     const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://www.simbrief.com/api/xml.fetch.php?userid=${userId}`)}`;
 
     try {
         const response = await fetch(proxyUrl);
-        const textData = await response.text();
+        if (!response.ok) throw new Error('Falha na resposta do servidor');
         
+        const textData = await response.text();
         const parser = new DOMParser();
         const xmlDoc = parser.parseFromString(textData, "text/xml");
 
@@ -135,11 +138,12 @@ async function importSimBrief() {
             const cruise = xmlDoc.querySelector("general initial_altitude")?.textContent || "36000";
             const squawk = xmlDoc.querySelector("atc squawk")?.textContent || "1000";
 
-            document.getElementById('info-callsign').value = callsign || "GLO1932";
-            document.getElementById('info-origin').value = origin;
-            document.getElementById('info-dest').value = dest;
-            document.getElementById('info-cruise').value = `FL${Math.round(parseInt(cruise) / 100)}`;
-            document.getElementById('info-squawk').value = squawk;
+            // Atribuindo aos campos caso existam
+            setVal('info-callsign', callsign || "GLO1932");
+            setVal('info-origin', origin);
+            setVal('info-dest', dest);
+            setVal('info-cruise', `FL${Math.round(parseInt(cruise) / 100)}`);
+            setVal('info-squawk', squawk);
 
             inputs.forEach(input => {
                 if (input) localStorage.setItem(input.id, input.value);
@@ -148,17 +152,25 @@ async function importSimBrief() {
             updatePhraseology();
             updateFrequencies();
             
-            btn.textContent = '✅ Importado!';
-            setTimeout(() => { btn.textContent = originalText; }, 2000);
+            if (btn) {
+                btn.textContent = '✅ Importado!';
+                setTimeout(() => { btn.textContent = originalText; }, 2000);
+            }
         } else {
             alert('Plano de voo não encontrado. Certifique-se de que gerou o plano no site do SimBrief e digitou o User ID correto.');
-            btn.textContent = originalText;
+            if (btn) btn.textContent = originalText;
         }
     } catch (error) {
         console.error(error);
         alert('Erro ao conectar com o SimBrief. Verifique se o ID está correto.');
-        btn.textContent = originalText;
+        if (btn) btn.textContent = originalText;
     }
+}
+
+// Função auxiliar segura para inputs
+function setVal(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.value = value;
 }
 
 // --- Atualizar Frequências Dinâmicas baseadas na Origem ---
@@ -254,16 +266,16 @@ function updateProgress() {
     const checkboxes = checklistContainer.querySelectorAll('input[type="checkbox"]');
     const total = checkboxes.length;
     if(total === 0) {
-        progressBar.style.width = '0%';
-        progressText.textContent = '0%';
+        if(progressBar) progressBar.style.width = '0%';
+        if(progressText) progressText.textContent = '0%';
         return;
     }
     
     const checked = checklistContainer.querySelectorAll('input[type="checkbox"]:checked').length;
     const percentage = Math.round((checked / total) * 100);
     
-    progressBar.style.width = `${percentage}%`;
-    progressText.textContent = `${percentage}%`;
+    if(progressBar) progressBar.style.width = `${percentage}%`;
+    if(progressText) progressText.textContent = `${percentage}%`;
 }
 
 function loadSavedData() {
@@ -283,7 +295,8 @@ function copyText(elementId) {
 
     textarea.select();
     navigator.clipboard.writeText(textarea.value).then(() => {
-        const btn = event.target;
+        const btn = event?.target;
+        if (!btn) return;
         const originalText = btn.textContent;
         
         btn.textContent = '✅ Copiado!';
@@ -382,7 +395,7 @@ if (inHgInput && hPaInput) {
         if (hPaInput.value) {
             inHgInput.value = (parseFloat(hPaInput.value) / 33.8639).toFixed(2);
         } else {
-            hPaInput.value = '';
+            inHgInput.value = '';
         }
     });
 }
