@@ -117,7 +117,9 @@ async function importSimBrief() {
     const originalText = btn ? btn.textContent : 'Importar';
     if (btn) btn.textContent = '⏳ Buscando...';
 
-    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://www.simbrief.com/api/xml.fetch.php?userid=${userId}`)}`;
+    // Detecta se digitou apenas números (ID) ou texto (Username)
+    const paramName = /^\d+$/.test(userId) ? 'userid' : 'username';
+    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://www.simbrief.com/api/xml.fetch.php?${paramName}=${userId}`)}`;
 
     try {
         const response = await fetch(proxyUrl);
