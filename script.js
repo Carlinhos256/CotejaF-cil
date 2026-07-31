@@ -468,3 +468,42 @@ if (resizer) {
         }
     });
 }
+// --- Função para Limpar Voo ---
+function limparVoo() {
+    if (confirm("Tem certeza que deseja apagar todos os dados e checklists do voo atual?")) {
+        
+        // 1. Salva o ID do SimBrief antes de apagar a memória
+        const simbriefInput = document.getElementById('simbrief-username');
+        const savedSimbriefId = simbriefInput ? simbriefInput.value : '';
+
+        // 2. Limpa toda a memória do navegador
+        localStorage.clear();
+        
+        // 3. Devolve o ID do SimBrief para a memória
+        if (savedSimbriefId) {
+            localStorage.setItem('simbrief-username', savedSimbriefId);
+        }
+        
+        // 4. Limpa TODOS os campos de texto e número da página, EXCETO o SimBrief
+        const todosOsCampos = document.querySelectorAll('input[type="text"], input[type="number"]');
+        todosOsCampos.forEach(campo => {
+            if (campo.id !== 'simbrief-username') {
+                campo.value = '';
+            }
+        });
+        
+        // 5. Desmarca todos os checklists
+        const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach(cb => cb.checked = false);
+        
+        // 6. Atualiza as barras e textos da fraseologia
+        updateProgress();
+        updatePhraseology();
+        
+        // 7. Limpa a lista de frequências
+        const freqList = document.getElementById('freq-list-content');
+        if (freqList) freqList.innerHTML = '';
+        
+        alert("Voo limpo com sucesso! O seu ID do SimBrief foi mantido.");
+    }
+}
