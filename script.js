@@ -142,12 +142,25 @@ async function importSimBrief() {
         const cruise = dados.general?.initial_altitude || "";
         const squawk = dados.atc?.squawk || "";
 
-        // Preenchendo a tela
+        // --- NOVOS DADOS EXTRAÍDOS PARA A ABA OPERACIONAL ---
+        const pistaOrigem = dados.origin?.plan_rwy || "";
+        
+        // A rota inteira vem num texto só, então pegamos a primeira palavra que é a SID
+        const rotaCompleta = dados.general?.route || "";
+        const sid = rotaCompleta.split(" ")[0] || ""; 
+        // ----------------------------------------------------
+
+        // Preenchendo a tela (Lateral Direita)
         setVal('info-callsign', callsign || "GLO1932");
         setVal('info-origin', origin);
         setVal('info-dest', dest);
         if (cruise) setVal('info-cruise', `FL${Math.round(parseInt(cruise) / 100)}`);
         setVal('info-squawk', squawk);
+
+        // --- PREENCHENDO A TELA DE DADOS OPERACIONAIS ---
+        if (pistaOrigem) setVal('input-runway', pistaOrigem);
+        if (sid) setVal('input-sid', sid);
+        // ------------------------------------------------
 
         // Salvando para não apagar se recarregar a página
         inputs.forEach(input => {
