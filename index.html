@@ -12,9 +12,16 @@
         <!-- COLUNA 1: Navegação (Esquerda) -->
         <aside class="sidebar">
             <div class="logo">
-                <h2>✈️ CotejaFácil</h2>
-                <p>Virtual First Officer</p>
+                <h2><span>✈️</span> Coteja<strong>Fácil</strong></h2>
+                <p>Aperte o PTT com total confiança</p>
             </div>
+
+            <!-- SELETOR DE REDE (IVAO / VATSIM) -->
+            <div class="network-selector">
+                <button type="button" id="net-ivao" class="net-btn active" onclick="setNetwork('IVAO')">IVAO</button>
+                <button type="button" id="net-vatsim" class="net-btn" onclick="setNetwork('VATSIM')">VATSIM</button>
+            </div>
+
             <nav id="nav-tabs">
                 <button class="tab-btn active" data-tab="1">1. Autorização</button>
                 <button class="tab-btn" data-tab="2">2. Acionamento e Táxi</button>
@@ -40,9 +47,15 @@
                 </div>
             </section>
 
+            <!-- DADOS OPERACIONAIS COM ABAS ORIGEM / DESTINO -->
             <section class="inputs-section">
-                <h3>Dados Operacionais da Fase</h3>
-                <div class="form-grid">
+                <div class="flight-phase-toggle">
+                    <button type="button" id="btn-phase-origin" class="phase-btn active" onclick="switchPhase('origin')">ORIGEM</button>
+                    <button type="button" id="btn-phase-dest" class="phase-btn" onclick="switchPhase('dest')">DESTINO</button>
+                </div>
+
+                <!-- FORMULÁRIO DE ORIGEM -->
+                <div id="form-origin-inputs" class="form-grid">
                     <div class="input-group">
                         <label for="input-atis">Informação ATIS</label>
                         <input type="text" id="input-atis" placeholder="Ex: A, B, C...">
@@ -50,6 +63,13 @@
                     <div class="input-group">
                         <label for="input-gate">Portão / Gate</label>
                         <input type="text" id="input-gate" placeholder="Ex: 12, G3...">
+                    </div>
+                    <div class="input-group">
+                        <label for="input-pushdir">Cauda do Pushback</label>
+                        <select id="input-pushdir">
+                            <option value="DIREITA">DIREITA</option>
+                            <option value="ESQUERDA">ESQUERDA</option>
+                        </select>
                     </div>
                     <div class="input-group">
                         <label for="input-runway">Pista em Uso</label>
@@ -61,7 +81,7 @@
                     </div>
                     <div class="input-group">
                         <label for="input-transition">Transição</label>
-                        <input type="text" id="input-transition" placeholder="Ex: N/A ou ISVIG">
+                        <input type="text" id="input-transition" placeholder="Ex: BODOP">
                     </div>
                     <div class="input-group">
                         <label for="input-alt">Altitude Inicial</label>
@@ -69,7 +89,40 @@
                     </div>
                     <div class="input-group">
                         <label for="input-taxi">Rota de Táxi</label>
-                        <input type="text" id="input-taxi" placeholder="Ex: Alfa, Bravo, Pátio 1">
+                        <input type="text" id="input-taxi" placeholder="Ex: Alfa, Bravo">
+                    </div>
+                </div>
+
+                <!-- FORMULÁRIO DE DESTINO -->
+                <div id="form-dest-inputs" class="form-grid" style="display: none;">
+                    <div class="input-group">
+                        <label for="input-star">STAR</label>
+                        <input type="text" id="input-star" placeholder="Ex: RAXI1B">
+                    </div>
+                    <div class="input-group">
+                        <label for="input-dest-transition">Transição</label>
+                        <input type="text" id="input-dest-transition" placeholder="Ex: ALGUD">
+                    </div>
+                    <div class="input-group">
+                        <label for="input-proc-type">Procedimento Tipo</label>
+                        <select id="input-proc-type">
+                            <option value="ILS">ILS</option>
+                            <option value="RNAV" selected>RNAV</option>
+                            <option value="NDB">NDB</option>
+                            <option value="VOR">VOR</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="input-proc-sub">Procedimento Sub</label>
+                        <input type="text" id="input-proc-sub" placeholder="Ex: Y">
+                    </div>
+                    <div class="input-group">
+                        <label for="input-dest-runway">Pista em Uso</label>
+                        <input type="text" id="input-dest-runway" placeholder="Ex: 15">
+                    </div>
+                    <div class="input-group">
+                        <label for="input-adjustment">Ajuste (QNH)</label>
+                        <input type="text" id="input-adjustment" placeholder="Ex: 102404">
                     </div>
                 </div>
             </section>
@@ -127,18 +180,16 @@
                     <input type="text" id="info-squawk" value="1000">
                 </div>
                 
-                <!-- BOTÃO DE LIMPAR VOO ADICIONADO AQUI -->
-                <button id="btn-reset" style="background-color: #ff4d4d; color: white; border: none; padding: 12px; border-radius: 5px; cursor: pointer; font-weight: bold; margin-top: 20px; width: 100%; transition: opacity 0.2s;">
+                <button type="button" onclick="limparVoo()" style="background-color: #ff4d4d; color: white; border: none; padding: 12px; border-radius: 5px; cursor: pointer; font-weight: bold; margin-top: 20px; width: 100%; transition: opacity 0.2s;">
                     🗑️ Limpar Voo / Novo Voo
                 </button>
-
             </div>
 
             <div class="frequencies-data">
-                <h3>Frequências de Rádio</h3>
-                <ul class="freq-list" id="freq-list-content">
-                    <!-- Gerado via JavaScript dinamicamente -->
-                </ul>
+                <div class="atc-header-bar">SERVIÇO ATC (<span id="current-net-label">IVAO</span>)</div>
+                <div id="atc-services-container" class="atc-services-list">
+                    <!-- Preenchido dinamicamente via JS -->
+                </div>
             </div>
 
             <div class="converter-data" style="margin-top: 10px;">

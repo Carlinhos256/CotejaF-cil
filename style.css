@@ -1,23 +1,39 @@
-/* Importando uma fonte moderna do Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
 :root {
-    --bg-dark: #0F1115;
-    --bg-panel: #181A20;
-    --bg-input: #22252B;
-    --text-main: #E2E8F0;
-    --text-muted: #94A3B8;
-    --accent-green: #10B981;
-    --accent-glow: rgba(16, 185, 129, 0.25);
-    --border-color: #2D313A;
-    --highlight: #1F2229;
+    --bg-dark: #0f172a;
+    --bg-card: #1e293b;
+    --border-color: #334155;
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --accent-blue: #38bdf8;
+    --accent-green: #4ade80;
+    --accent-hover: #0284c7;
+    --right-panel-width: 320px;
 }
 
 * {
+    box-sizing: border-box;
     margin: 0;
     padding: 0;
-    box-sizing: border-box;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* CUSTOMIZAÇÃO GLOBAL DE SCROLLBARS (Escuras e Discretas) */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-dark);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-blue);
 }
 
 body {
@@ -25,144 +41,192 @@ body {
     color: var(--text-main);
     height: 100vh;
     overflow: hidden;
-}
-
-::-webkit-scrollbar {
-    width: 8px;
-}
-::-webkit-scrollbar-track {
-    background: var(--bg-dark);
-}
-::-webkit-scrollbar-thumb {
-    background: var(--border-color);
-    border-radius: 4px;
-}
-::-webkit-scrollbar-thumb:hover {
-    background: var(--text-muted);
+    font-size: 1rem;
+    line-height: 1.5;
 }
 
 .app-container {
-    display: grid;
-    grid-template-columns: 260px 1fr 4px var(--right-panel-width, 320px); 
+    display: flex;
     height: 100vh;
+    width: 100vw;
 }
 
+/* SIDEBAR (Esquerda) */
 .sidebar {
-    background-color: var(--bg-panel);
+    width: 260px;
+    background-color: var(--bg-card);
     border-right: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
-    box-shadow: 4px 0 15px rgba(0,0,0,0.2);
-    z-index: 10;
 }
 
 .logo {
-    padding: 25px 20px;
+    padding: 22px 15px;
     border-bottom: 1px solid var(--border-color);
     text-align: center;
+    background: linear-gradient(180deg, rgba(56, 189, 248, 0.08) 0%, rgba(30, 41, 59, 0) 100%);
 }
 
 .logo h2 {
-    font-weight: 700;
+    color: var(--text-main);
+    font-size: 1.2rem;
+    font-weight: 400;
     letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.logo h2 strong {
+    color: var(--accent-blue);
+    font-weight: 700;
+}
+
+.logo h2 span {
+    font-size: 1rem;
+    filter: drop-shadow(0 2px 4px rgba(56, 189, 248, 0.3));
 }
 
 .logo p {
-    color: var(--accent-green);
-    font-size: 0.8rem;
-    font-weight: 500;
-    margin-top: 5px;
+    color: var(--text-muted);
+    font-size: 0.65rem;
+    margin-top: 6px;
     text-transform: uppercase;
     letter-spacing: 1px;
+    font-weight: 600;
+}
+
+.network-selector {
+    display: flex;
+    padding: 12px 15px;
+    gap: 8px;
+    border-bottom: 1px solid var(--border-color);
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+.net-btn {
+    flex: 1;
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
+    padding: 6px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 0.8rem;
+    transition: all 0.2s;
+}
+
+.net-btn.active {
+    background-color: var(--accent-blue);
+    color: var(--bg-dark);
+    border-color: var(--accent-blue);
 }
 
 #nav-tabs {
     display: flex;
     flex-direction: column;
-    padding: 15px 0;
+    padding: 15px;
+    gap: 10px;
 }
 
 .tab-btn {
     background: transparent;
+    border: 1px solid var(--border-color);
     color: var(--text-muted);
-    border: none;
-    padding: 16px 24px;
+    padding: 12px 15px;
     text-align: left;
-    font-size: 0.95rem;
-    font-weight: 500;
+    border-radius: 6px;
     cursor: pointer;
-    transition: all 0.3s ease;
-    border-left: 4px solid transparent;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
 }
 
 .tab-btn:hover {
-    background-color: var(--highlight);
+    background-color: rgba(56, 189, 248, 0.1);
     color: var(--text-main);
 }
 
 .tab-btn.active {
-    background-color: var(--highlight);
-    color: var(--text-main);
-    border-left: 4px solid var(--accent-green);
-    font-weight: 600;
+    background-color: var(--accent-blue);
+    color: var(--bg-dark);
+    border-color: var(--accent-blue);
 }
 
+/* MAIN CONTENT (Centro) */
 .main-content {
+    flex-grow: 1;
+    background-color: var(--bg-dark);
+    padding: 20px;
+    overflow-y: auto;
     display: flex;
     flex-direction: column;
-    padding: 25px;
-    overflow-y: auto;
     gap: 20px;
 }
 
-.progress-header, .checklist-section, .inputs-section {
-    background-color: var(--bg-panel);
-    padding: 20px 25px;
-    border-radius: 12px;
+.progress-header {
+    background-color: var(--bg-card);
+    padding: 15px;
+    border-radius: 8px;
     border: 1px solid var(--border-color);
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
 
-.progress-header h3, .checklist-section h3, .inputs-section h3 {
-    font-size: 1.05rem;
-    font-weight: 600;
-    color: var(--text-main);
-    margin-bottom: 15px;
+.progress-header h3 {
+    font-size: 1rem;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
 }
 
 .progress-bar-container {
-    width: 100%;
+    background-color: var(--border-color);
     height: 8px;
-    background-color: var(--bg-input);
-    border-radius: 10px;
-    margin-top: 10px;
+    border-radius: 4px;
     overflow: hidden;
 }
 
 .progress-bar {
-    height: 100%;
     background-color: var(--accent-green);
+    height: 100%;
     width: 0%;
-    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: width 0.3s ease;
 }
 
+.checklist-section, .inputs-section {
+    background-color: var(--bg-card);
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+/* CHECKLIST COM ALTURA CONTROLADA E SCROLL ELEGANTE */
 .checklist-container {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 180px;
+    overflow-y: auto;
+    padding-right: 4px;
 }
 
 .check-item {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 8px;
+    font-size: 0.95rem;
+    background: rgba(255, 255, 255, 0.02);
+    padding: 8px 12px;
     border-radius: 6px;
-    transition: background 0.2s;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s ease;
 }
 
 .check-item:hover {
-    background-color: var(--highlight);
+    background: rgba(255, 255, 255, 0.04);
+    border-color: var(--border-color);
 }
 
 .check-item input[type="checkbox"] {
@@ -173,183 +237,262 @@ body {
 }
 
 .check-item label {
-    font-size: 0.95rem;
     cursor: pointer;
+    transition: color 0.2s;
     user-select: none;
+}
+
+.check-item.completed {
+    background: rgba(74, 222, 128, 0.05);
+    border-color: rgba(74, 222, 128, 0.2);
+}
+
+.check-item.completed label {
+    text-decoration: line-through;
+    color: var(--text-muted);
+    opacity: 0.75;
+}
+
+.flight-phase-toggle {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.phase-btn {
+    flex: 1;
+    background-color: var(--bg-dark);
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
+    padding: 8px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+}
+
+.phase-btn.active {
+    background-color: #f59e0b;
+    color: var(--bg-dark);
+    border-color: #f59e0b;
+}
+
+.checklist-section h3, .simbrief-data h3, .converter-data h3 {
+    font-size: 1rem;
+    margin-bottom: 12px;
+    color: var(--accent-blue);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 6px;
 }
 
 .form-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
 }
 
 .input-group {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 4px;
 }
 
 .input-group label {
-    font-size: 0.85rem;
-    font-weight: 500;
+    font-size: 0.8rem;
     color: var(--text-muted);
+    font-weight: 600;
 }
 
-.input-group input {
-    background-color: var(--bg-input);
-    color: var(--text-main);
+.input-group input, .input-group select {
+    background-color: var(--bg-dark);
     border: 1px solid var(--border-color);
-    padding: 10px 14px;
-    border-radius: 6px;
-    outline: none;
-    font-size: 0.95rem;
-    transition: all 0.2s ease;
+    color: var(--text-main);
+    padding: 8px 10px;
+    border-radius: 4px;
+    font-size: 0.9rem;
 }
 
-.input-group input:focus {
-    border-color: var(--accent-green);
-    box-shadow: 0 0 0 3px var(--accent-glow);
+.input-group input:focus, .input-group select:focus {
+    border-color: var(--accent-blue);
+    outline: none;
 }
 
 .phraseology-section {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 20px;
-    flex-grow: 1;
+    gap: 15px;
 }
 
 .phrase-box {
-    background-color: var(--bg-panel);
+    background-color: var(--bg-card);
     border: 1px solid var(--border-color);
-    border-radius: 12px;
+    border-radius: 8px;
+    padding: 12px;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    overflow: hidden;
 }
 
 .phrase-box-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 12px 20px;
-    background-color: var(--highlight);
-    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 8px;
 }
 
-.phrase-box-header h4 {
-    padding: 0;
-    border: none;
-    background: none;
-    font-weight: 600;
-    font-size: 0.95rem;
+.phrase-box h4 {
+    font-size: 0.9rem;
+    color: var(--accent-blue);
 }
 
 .copy-btn {
-    background-color: var(--bg-input);
-    color: var(--accent-green);
-    border: 1px solid var(--border-color);
-    padding: 6px 12px;
-    border-radius: 6px;
+    background-color: var(--border-color);
+    color: var(--text-main);
+    border: none;
+    padding: 4px 8px;
+    border-radius: 4px;
     font-size: 0.8rem;
-    font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: background 0.2s;
 }
 
 .copy-btn:hover {
-    background-color: var(--accent-green);
+    background-color: var(--accent-blue);
     color: var(--bg-dark);
 }
 
 .phrase-box textarea {
-    background-color: transparent;
-    color: var(--accent-green);
-    border: none;
-    padding: 20px;
+    background-color: var(--bg-dark);
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+    padding: 10px;
+    border-radius: 4px;
     resize: none;
-    flex-grow: 1;
-    font-size: 1.25rem;
-    line-height: 1.6;
-    outline: none;
-    font-family: 'Inter', sans-serif;
-    min-height: 200px;
+    height: 170px;
+    font-size: 1rem;
+    line-height: 1.5;
 }
 
+/* RESIZER */
 .resizer {
+    width: 6px;
     background-color: var(--border-color);
     cursor: col-resize;
-    transition: background-color 0.2s ease;
-    z-index: 20;
+    transition: background 0.2s;
 }
 
 .resizer:hover, .resizer.active {
+    background-color: var(--accent-blue);
+}
+
+/* INFO PANEL (Direita) */
+.info-panel {
+    width: var(--right-panel-width);
+    min-width: 260px;
+    max-width: 600px;
+    background-color: var(--bg-card);
+    border-left: 1px solid var(--border-color);
+    padding: 15px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.frequencies-data {
+    background-color: rgba(0, 0, 0, 0.15);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.atc-header-bar {
+    background-color: #64748b;
+    color: #ffffff;
+    font-weight: bold;
+    font-size: 0.85rem;
+    text-align: center;
+    padding: 8px;
+    letter-spacing: 0.5px;
+}
+
+.atc-services-list {
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    gap: 10px;
+}
+
+.atc-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+}
+
+.atc-label {
+    font-weight: bold;
+    color: var(--text-main);
+    width: 80px;
+}
+
+.atc-status-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 34px;
+    height: 18px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: var(--border-color);
+    transition: .3s;
+    border-radius: 18px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 12px;
+    width: 12px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .3s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
     background-color: var(--accent-green);
 }
 
-.info-panel {
-    background-color: var(--bg-panel);
-    padding: 25px;
-    display: flex;
-    flex-direction: column;
-    gap: 35px;
-    overflow-y: auto;
-    box-shadow: -4px 0 15px rgba(0,0,0,0.2);
-    z-index: 10;
+input:checked + .slider:before {
+    transform: translateX(16px);
 }
 
-.info-panel h3 {
-    margin-bottom: 20px;
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--text-main);
-    border-bottom: 2px solid var(--accent-green);
-    padding-bottom: 8px;
-    display: inline-block;
-}
-
-.simbrief-data .input-group {
-    margin-bottom: 15px;
-}
-
-.freq-list {
-    list-style: none;
-    background-color: var(--highlight);
-    border-radius: 8px;
-    padding: 10px;
-    border: 1px solid var(--border-color);
-}
-
-.freq-list li {
-    display: flex;
-    justify-content: space-between;
-    padding: 10px 8px;
-    border-bottom: 1px solid var(--border-color);
-    font-size: 0.9rem;
-}
-
-.freq-list li:last-child {
-    border-bottom: none;
-}
-
-.freq-name {
-    color: var(--text-muted);
-    font-weight: 500;
-}
-
-.freq-num {
+.atc-freq-display {
+    font-family: monospace;
+    font-weight: bold;
     color: var(--accent-green);
-    font-weight: 700;
-    letter-spacing: 0.5px;
+    font-size: 0.85rem;
 }
 
 .converter-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 15px;
-}
-
-.converter-data h3 {
-    margin-bottom: 20px;
+    gap: 10px;
 }

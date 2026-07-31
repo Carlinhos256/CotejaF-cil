@@ -1,4 +1,3 @@
-// --- Dados combinados de Checklists ---
 const checklistsData = {
     "1": [
         "FMC / MCDU Inicializado", 
@@ -49,6 +48,8 @@ const checklistsData = {
 };
 
 let currentTab = "1";
+let currentNetwork = "IVAO";
+let currentPhase = "origin";
 
 const tabs = document.querySelectorAll('.tab-btn');
 const checklistContainer = document.getElementById('checklist-container');
@@ -58,11 +59,18 @@ const progressText = document.getElementById('progress-text');
 const inputs = [
     document.getElementById('input-atis'),
     document.getElementById('input-gate'),
+    document.getElementById('input-pushdir'),
     document.getElementById('input-runway'),
     document.getElementById('input-sid'),
     document.getElementById('input-transition'),
     document.getElementById('input-alt'),
     document.getElementById('input-taxi'),
+    document.getElementById('input-star'),
+    document.getElementById('input-dest-transition'),
+    document.getElementById('input-proc-type'),
+    document.getElementById('input-proc-sub'),
+    document.getElementById('input-dest-runway'),
+    document.getElementById('input-adjustment'),
     document.getElementById('simbrief-username'),
     document.getElementById('info-callsign'),
     document.getElementById('info-origin'),
@@ -102,7 +110,26 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-// --- Função de Importação Direta do SimBrief (SEM PROXY) ---
+function switchPhase(phase) {
+    currentPhase = phase;
+    document.getElementById('btn-phase-origin').classList.toggle('active', phase === 'origin');
+    document.getElementById('btn-phase-dest').classList.toggle('active', phase === 'dest');
+
+    document.getElementById('form-origin-inputs').style.display = phase === 'origin' ? 'grid' : 'none';
+    document.getElementById('form-dest-inputs').style.display = phase === 'dest' ? 'grid' : 'none';
+}
+
+function setNetwork(net) {
+    currentNetwork = net;
+    document.getElementById('net-ivao').classList.toggle('active', net === 'IVAO');
+    document.getElementById('net-vatsim').classList.toggle('active', net === 'VATSIM');
+    
+    const labelNet = document.getElementById('current-net-label');
+    if(labelNet) labelNet.textContent = net;
+
+    updateFrequencies();
+}
+
 async function importSimBrief() {
     const userField = document.getElementById('simbrief-username');
     const btn = document.querySelector('button[onclick*="importSimBrief"]') || event?.target;
@@ -116,10 +143,7 @@ async function importSimBrief() {
     const originalText = btn ? btn.textContent : 'Importar';
     if (btn) btn.textContent = '⏳ Buscando...';
 
-    // Detecta se digitou apenas números (ID) ou texto (Username)
     const paramName = /^\d+$/.test(userId) ? 'userid' : 'username';
-
-    // URL DIRETA do SimBrief pedindo formato JSON, sem passar por site de terceiros
     const url = `https://www.simbrief.com/api/xml.fetcher.php?${paramName}=${userId}&json=1`;
 
     try {
@@ -128,41 +152,56 @@ async function importSimBrief() {
         
         const dados = await response.json();
 
-        // Se o SimBrief retornar erro (geralmente porque o plano não foi gerado)
         if (dados.fetch && dados.fetch.status === "Error") {
-            alert('Plano de voo não encontrado. Certifique-se de que clicou no botão "GENERATE FLIGHT" no site do SimBrief.');
+            alert('Plano de voo não encontrado no SimBrief. Certifique-se de gerar o voo.');
             if (btn) btn.textContent = originalText;
             return;
         }
 
-        // Puxando os dados limpos do JSON
         const callsign = (dados.general?.icao_airline || "") + (dados.general?.flight_number || "");
         const origin = dados.origin?.icao_code || "";
         const dest = dados.destination?.icao_code || "";
         const cruise = dados.general?.initial_altitude || "";
         const squawk = dados.atc?.squawk || "";
-
-        // --- NOVOS DADOS EXTRAÍDOS PARA A ABA OPERACIONAL ---
-        const pistaOrigem = dados.origin?.plan_rwy || "";
         
-        // A rota inteira vem num texto só, então pegamos a primeira palavra que é a SID
+        const pistaOrigem = dados.origin?.plan_rwy || "";
+        const pistaDest = dados.destination?.plan_rwy || "";
+        
         const rotaCompleta = dados.general?.route || "";
-        const sid = rotaCompleta.split(" ")[0] || ""; 
-        // ----------------------------------------------------
+        const pedacosRota = rotaCompleta.split(" ").filter(Boolean);
 
-        // Preenchendo a tela (Lateral Direita)
+        const sidOrigem = dados.origin?.plan_sid || (pedacosRota.length > 0 ? pedacosRota[0] : "");
+        const transOrigem = pedacosRota.length > 1 ? pedacosRota[1] : "";
+
+        const starDest = dados.destination?.plan_star || (pedacosRota.length > 2 ? pedacosRota[pedacosRota.length - 2] : "");
+        const transDest = dados.destination?.plan_transition || (pedacosRota.length > 3 ? pedacosRota[pedacosRota.length - 3] : "");
+        const appType = dados.destination?.approach_type || "ILS";
+
         setVal('info-callsign', callsign || "GLO1932");
         setVal('info-origin', origin);
         setVal('info-dest', dest);
         if (cruise) setVal('info-cruise', `FL${Math.round(parseInt(cruise) / 100)}`);
         setVal('info-squawk', squawk);
 
-        // --- PREENCHENDO A TELA DE DADOS OPERACIONAIS ---
-        if (pistaOrigem) setVal('input-runway', pistaOrigem);
-        if (sid) setVal('input-sid', sid);
-        // ------------------------------------------------
+        setVal('input-runway', pistaOrigem);
+        setVal('input-sid', sidOrigem);
+        setVal('input-transition', transOrigem);
 
-        // Salvando para não apagar se recarregar a página
+        setVal('input-star', starDest);
+        setVal('input-dest-transition', transDest);
+        setVal('input-dest-runway', pistaDest);
+
+        const procTypeSelect = document.getElementById('input-proc-type');
+        if (procTypeSelect && appType) {
+            const upperApp = appType.toUpperCase();
+            for (let option of procTypeSelect.options) {
+                if (upperApp.includes(option.value)) {
+                    procTypeSelect.value = option.value;
+                    break;
+                }
+            }
+        }
+
         inputs.forEach(input => {
             if (input) localStorage.setItem(input.id, input.value);
         });
@@ -176,67 +215,73 @@ async function importSimBrief() {
         }
 
     } catch (error) {
-        console.error("Erro no fetch:", error);
-        alert('Erro ao conectar com o SimBrief. Verifique se o ID ou Username está correto.');
+        console.error("Erro na importação:", error);
+        alert('Erro ao conectar com o SimBrief.');
         if (btn) btn.textContent = originalText;
     }
 }
 
-// Função auxiliar segura para inputs
 function setVal(id, value) {
     const el = document.getElementById(id);
     if (el) el.value = value;
 }
 
-// --- Atualizar Frequências Dinâmicas baseadas na Origem ---
-function updateFrequencies() {
+async function updateFrequencies() {
     const originEl = document.getElementById('info-origin');
     const icao = originEl ? originEl.value.trim().toUpperCase() : "SBGR";
-    const freqList = document.getElementById('freq-list-content');
+    const container = document.getElementById('atc-services-container');
     
-    if (!freqList) return;
+    if (!container) return;
 
-    const databaseFreqs = {
-        "SBGR": [
-            {name: "ATIS", num: "127.750"},
-            {name: "DEL", num: "121.250"},
-            {name: "GND", num: "121.500"},
-            {name: "TWR", num: "118.400"},
-            {name: "APP", num: "119.800"}
-        ],
-        "SBSP": [
-            {name: "ATIS", num: "135.100"},
-            {name: "GND", num: "121.700"},
-            {name: "TWR", num: "118.050"},
-            {name: "APP", num: "119.350"}
-        ],
-        "SBGL": [
-            {name: "ATIS", num: "127.600"},
-            {name: "DEL", num: "121.550"},
-            {name: "GND", num: "121.900"},
-            {name: "TWR", num: "118.100"},
-            {name: "APP", num: "119.100"}
-        ],
-        "SBPA": [
-            {name: "ATIS", num: "127.850"},
-            {name: "GND", num: "121.750"},
-            {name: "TWR", num: "118.300"},
-            {name: "APP", num: "119.500"}
-        ]
-    };
-
-    const freqs = databaseFreqs[icao] || [
-        {name: "ATIS", num: "127.000"},
-        {name: "GND", num: "121.900"},
-        {name: "TWR", num: "118.100"},
-        {name: "APP", num: "119.000"}
+    const postos = [
+        { label: "SOLO", type: ["GND", "DEL"] },
+        { label: "TORRE", type: ["TWR"] },
+        { label: "CONTROLE", type: ["APP"] },
+        { label: "CENTRO", type: ["CTR"] }
     ];
 
-    freqList.innerHTML = '';
-    freqs.forEach(f => {
-        const li = document.createElement('li');
-        li.innerHTML = `<span class="freq-name">${icao}_${f.name}</span> <span class="freq-num">${f.num}</span>`;
-        freqList.appendChild(li);
+    container.innerHTML = `<div style="text-align:center; color: var(--text-muted); font-size: 0.8rem; padding: 5px;">Consultando ${currentNetwork}...</div>`;
+
+    let onlineControllers = [];
+    try {
+        let apiUrl = currentNetwork === "VATSIM" 
+            ? 'https://data.vatsim.net/v3/vatsim-data.json'
+            : 'https://api.ivao.aero/v2/tracker/whazzup';
+
+        const response = await fetch(apiUrl);
+        if (response.ok) {
+            const data = await response.json();
+            onlineControllers = currentNetwork === "VATSIM" ? (data.controllers || []) : (data.clients?.atcs || data.controllers || []);
+        }
+    } catch (e) {
+        console.error("Erro ao buscar rede online", e);
+    }
+
+    container.innerHTML = '';
+
+    postos.forEach(posto => {
+        const encontrado = onlineControllers.find(c => {
+            const callsign = c.callsign || c.id || "";
+            if (!callsign.startsWith(icao)) return false;
+            return posto.type.some(t => callsign.includes(t));
+        });
+
+        const isOnline = !!encontrado;
+        const freqText = isOnline ? (encontrado.frequency || "122.800") : "122.800";
+
+        const row = document.createElement('div');
+        row.className = 'atc-row';
+        row.innerHTML = `
+            <span class="atc-label">${posto.label}</span>
+            <div class="atc-status-info">
+                <label class="switch">
+                    <input type="checkbox" ${isOnline ? 'checked' : ''} disabled>
+                    <span class="slider"></span>
+                </label>
+                <span class="atc-freq-display">${freqText}</span>
+            </div>
+        `;
+        container.appendChild(row);
     });
 }
 
@@ -258,11 +303,21 @@ function renderChecklist(tabId) {
         const savedState = localStorage.getItem(checkboxId);
         if (savedState === 'true') {
             checkbox.checked = true;
+            div.classList.add('completed');
         }
         
         checkbox.addEventListener('change', (e) => {
             localStorage.setItem(e.target.id, e.target.checked);
+            div.classList.toggle('completed', e.target.checked);
             updateProgress();
+        });
+
+        // Permitir clique em toda a linha do checklist
+        div.addEventListener('click', (e) => {
+            if (e.target !== checkbox) {
+                checkbox.checked = !checkbox.checked;
+                checkbox.dispatchEvent(new Event('change'));
+            }
         });
         
         const label = document.createElement('label');
@@ -334,19 +389,25 @@ function formatSquawk(squawk) {
 function updatePhraseology() {
     const getValue = (id, fallback) => {
         const el = document.getElementById(id);
-        return el && el.value.trim() !== '' ? el.value.toUpperCase() : fallback;
+        if (!el) return fallback;
+        return el.value.trim() !== '' ? el.value.toUpperCase() : fallback;
     };
 
     const atis = getValue('input-atis', '[ATIS]');
     const gate = getValue('input-gate', '[PORTÃO]');
+    const pushdir = getValue('input-pushdir', 'DIREITA');
     const rwy = getValue('input-runway', '[PISTA]');
     const sid = getValue('input-sid', '[SID]');
-    
-    const transInput = document.getElementById('input-transition');
-    const trans = transInput && transInput.value.trim() !== '' ? transInput.value.toUpperCase() : '';
-    
+    const trans = getValue('input-transition', '');
     const alt = getValue('input-alt', '[ALTITUDE]');
-    const taxi = getValue('input-taxi', '[TAXIWAYS]');
+    const taxi = getValue('input-taxi', '[TAXIWAY]');
+
+    const star = getValue('input-star', '[STAR]');
+    const destTrans = getValue('input-dest-transition', '');
+    const procType = getValue('input-proc-type', 'ILS');
+    const procSub = getValue('input-proc-sub', '');
+    const destRwy = getValue('input-dest-runway', '[PISTA]');
+
     const callsign = getValue('info-callsign', '[CALLSIGN]');
     const dest = getValue('info-dest', '[DESTINO]');
     const origin = getValue('info-origin', '[ORIGEM]');
@@ -356,34 +417,35 @@ function updatePhraseology() {
     const squawk = squawkEl && squawkEl.value.trim() !== '' ? formatSquawk(squawkEl.value) : "____";
     
     const transicaoTexto = trans ? ` transição ${trans},` : "";
+    const procCompleto = procSub ? `${procType} ${procSub}` : procType;
 
     let pilot = "";
     let readback = "";
 
     switch(currentTab) {
         case "1": 
-            pilot = `${origin} Tráfego, ${callsign}, no portão ${gate}, com informação ${atis}, solicita autorização de tráfego IFR para ${dest}, nível planejado ${level}.`;
+            pilot = `Para coordenação em ${origin} o ${callsign} solicita autorização de tráfego IFR para ${dest}, com informação ${atis}, nível planejado ${level}.`;
             readback = `Autorizado IFR para ${dest}, via ${sid}${transicaoTexto} pista ${rwy}, subida inicial ${alt}, transponder ${squawk}. ${callsign}.`;
             break;
             
         case "2": 
-            pilot = `${origin} Solo, ${callsign}, solicita acionamento e pushback no portão ${gate}.\n\n(Após acionamento)\n${origin} Solo, ${callsign}, solicita instruções de táxi.`;
-            readback = `Acionamento e pushback aprovados, ${callsign}.\n\nTáxi via ${taxi} para o ponto de espera da pista ${rwy}, ${callsign}.`;
+            pilot = `Para coordenação em ${origin} o ${callsign} vai iniciar pushback e acionamento na posição ${gate} com cauda à ${pushdir}, vai reportar para o táxi.\n\n(Após o acionamento):\nPara coordenação em ${origin} o ${callsign} vai iniciar táxi via ${taxi} até o ponto de espera da pista ${rwy}.`;
+            readback = `Pushback e acionamento aprovados com cauda à ${pushdir}, ${callsign}.\n\nTáxi via ${taxi} até o ponto de espera da pista ${rwy}, ${callsign}.`;
             break;
             
         case "3": 
-            pilot = `${origin} Torre, ${callsign}, no ponto de espera da pista ${rwy}, pronto para decolagem.`;
+            pilot = `Para coordenação em ${origin} o ${callsign} alinha e decola da pista ${rwy}.`;
             readback = `Livre decolagem pista ${rwy}, vento [Graus/Nós], ${callsign}.`;
             break;
             
         case "4": 
-            pilot = `Controle, ${callsign} decolado de ${origin}, cruzando [Altitude Atual] subindo para ${alt} na saída ${sid}.`;
+            pilot = `Para coordenação em ${origin} o ${callsign} livrou o eixo da pista ${rwy}, prossegue subida via ${sid} para o nível de voo ${level}.`;
             readback = `Subida autorizada para nível de cruzeiro ${level}, direto [Próximo Fixo], ${callsign}.`;
             break;
             
         case "5": 
-            pilot = `Aproximação, ${callsign} descendo para [Altitude], com informação ${atis}, solicita vetoração / procedimento para pista ${rwy} em ${dest}.`;
-            readback = `Ciente, autorizado procedimento [Nome/ILS] pista ${rwy}, reportará estabelecido, ${callsign}.\n\n(Com a Torre)\nLivre pouso pista ${rwy}, ${callsign}.`;
+            pilot = `Para coordenação em ${dest} o ${callsign} em descida para o nível de voo ${level}, via ${star}, previsto procedimento ${procCompleto} pista ${destRwy}.`;
+            readback = `Ciente, autorizado procedimento pista ${destRwy}, reportará estabelecido, ${callsign}.\n\n(Pousado):\nPara coordenação em ${dest} o ${callsign} livrou a pista, vai prosseguir táxi via ${taxi} até a posição ${gate}.`;
             break;
     }
 
@@ -391,7 +453,6 @@ function updatePhraseology() {
     if (textReadback) textReadback.value = readback;
 }
 
-// --- Conversor Instantâneo de Unidades ---
 const inHgInput = document.getElementById('conv-inhg');
 const hPaInput = document.getElementById('conv-hpa');
 const lbsInput = document.getElementById('conv-lbs');
@@ -410,7 +471,7 @@ if (inHgInput && hPaInput) {
         if (hPaInput.value) {
             inHgInput.value = (parseFloat(hPaInput.value) / 33.8639).toFixed(2);
         } else {
-            inHgInput.value = '';
+            hPaInput.value = '';
         }
     });
 }
@@ -433,7 +494,6 @@ if (lbsInput && kgInput) {
     });
 }
 
-// --- Sistema de Redimensionamento do Painel Direito ---
 const resizer = document.getElementById('resizer');
 let isResizing = false;
 
@@ -468,41 +528,36 @@ if (resizer) {
         }
     });
 }
-// --- Função para Limpar Voo ---
+
 function limparVoo() {
     if (confirm("Tem certeza que deseja apagar todos os dados e checklists do voo atual?")) {
-        
-        // 1. Salva o ID do SimBrief antes de apagar a memória
         const simbriefInput = document.getElementById('simbrief-username');
         const savedSimbriefId = simbriefInput ? simbriefInput.value : '';
 
-        // 2. Limpa toda a memória do navegador
         localStorage.clear();
         
-        // 3. Devolve o ID do SimBrief para a memória
         if (savedSimbriefId) {
             localStorage.setItem('simbrief-username', savedSimbriefId);
+            simbriefInput.value = savedSimbriefId;
         }
         
-        // 4. Limpa TODOS os campos de texto e número da página, EXCETO o SimBrief
-        const todosOsCampos = document.querySelectorAll('input[type="text"], input[type="number"]');
+        const todosOsCampos = document.querySelectorAll('input[type="text"], input[type="number"], select');
         todosOsCampos.forEach(campo => {
-            if (campo.id !== 'simbrief-username') {
-                campo.value = '';
+            if (campo && campo.id !== 'simbrief-username') {
+                if (campo.tagName === 'SELECT') {
+                    campo.selectedIndex = 0;
+                } else {
+                    campo.value = '';
+                }
             }
         });
         
-        // 5. Desmarca todos os checklists
         const checkboxes = document.querySelectorAll('input[type="checkbox"]');
         checkboxes.forEach(cb => cb.checked = false);
         
-        // 6. Atualiza as barras e textos da fraseologia
         updateProgress();
         updatePhraseology();
-        
-        // 7. Limpa a lista de frequências
-        const freqList = document.getElementById('freq-list-content');
-        if (freqList) freqList.innerHTML = '';
+        updateFrequencies();
         
         alert("Voo limpo com sucesso! O seu ID do SimBrief foi mantido.");
     }
