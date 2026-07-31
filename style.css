@@ -496,3 +496,44 @@ input:checked + .slider:before {
     grid-template-columns: 1fr 1fr;
     gap: 10px;
 }
+
+/* RESPONSIVIDADE PARA CELULARES E TELAS PEQUENAS */
+@media (max-width: 1024px) {
+    body {
+        overflow-y: auto;
+        height: auto;
+    }
+
+    .app-container {
+        flex-direction: column;
+        height: auto;
+        width: 100%;
+        overflow-y: visible;
+    }
+
+    .sidebar {
+        width: 100%;
+        height: auto;
+    }
+
+    .main-content {
+        height: auto;
+        overflow-y: visible;
+        flex-grow: unset;
+    }
+
+    .info-panel {
+        width: 100%;
+        min-width: 100%;
+        max-width: 100%;
+        height: auto;
+    }
+
+    .phraseology-section {
+        grid-template-columns: 1fr;
+    }
+
+    .converter-grid {
+        grid-template-columns: 1fr;
+    }
+}
