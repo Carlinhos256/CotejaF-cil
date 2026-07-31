@@ -1,494 +1,65 @@
-:root {
-    --bg-dark: #0f172a;
-    --bg-card: #1e293b;
-    --border-color: #334155;
-    --text-main: #f8fafc;
-    --text-muted: #94a3b8;
-    --accent-blue: #38bdf8;
-    --accent-green: #4ade80;
-    --accent-hover: #0284c7;
-    --right-panel-width: 320px;
-}
-
+/* Reset básico e configurações gerais */
 * {
-    box-sizing: border-box;
     margin: 0;
     padding: 0;
+    box-sizing: border-box;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* CUSTOMIZAÇÃO GLOBAL DE SCROLLBARS (Escuras e Discretas) */
-::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-}
-
-::-webkit-scrollbar-track {
-    background: var(--bg-dark);
-}
-
-::-webkit-scrollbar-thumb {
-    background: var(--border-color);
-    border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: var(--accent-blue);
-}
-
 body {
-    background-color: var(--bg-dark);
-    color: var(--text-main);
+    background-color: #0b131e;
+    color: #e2e8f0;
     height: 100vh;
     overflow: hidden;
-    font-size: 1rem;
-    line-height: 1.5;
 }
 
+/* Container principal (Layout de colunas para PC) */
 .app-container {
     display: flex;
     height: 100vh;
     width: 100vw;
-}
-
-/* SIDEBAR (Esquerda) */
-.sidebar {
-    width: 260px;
-    background-color: var(--bg-card);
-    border-right: 1px solid var(--border-color);
-    display: flex;
-    flex-direction: column;
-}
-
-.logo {
-    padding: 22px 15px;
-    border-bottom: 1px solid var(--border-color);
-    text-align: center;
-    background: linear-gradient(180deg, rgba(56, 189, 248, 0.08) 0%, rgba(30, 41, 59, 0) 100%);
-}
-
-.logo h2 {
-    color: var(--text-main);
-    font-size: 1.2rem;
-    font-weight: 400;
-    letter-spacing: 0.5px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-}
-
-.logo h2 strong {
-    color: var(--accent-blue);
-    font-weight: 700;
-}
-
-.logo h2 span {
-    font-size: 1rem;
-    filter: drop-shadow(0 2px 4px rgba(56, 189, 248, 0.3));
-}
-
-.logo p {
-    color: var(--text-muted);
-    font-size: 0.65rem;
-    margin-top: 6px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    font-weight: 600;
-}
-
-.network-selector {
-    display: flex;
-    padding: 12px 15px;
-    gap: 8px;
-    border-bottom: 1px solid var(--border-color);
-    background-color: rgba(0, 0, 0, 0.1);
-}
-
-.net-btn {
-    flex: 1;
-    background: transparent;
-    border: 1px solid var(--border-color);
-    color: var(--text-muted);
-    padding: 6px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: bold;
-    font-size: 0.8rem;
-    transition: all 0.2s;
-}
-
-.net-btn.active {
-    background-color: var(--accent-blue);
-    color: var(--bg-dark);
-    border-color: var(--accent-blue);
-}
-
-#nav-tabs {
-    display: flex;
-    flex-direction: column;
-    padding: 15px;
-    gap: 10px;
-}
-
-.tab-btn {
-    background: transparent;
-    border: 1px solid var(--border-color);
-    color: var(--text-muted);
-    padding: 12px 15px;
-    text-align: left;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 0.95rem;
-    transition: all 0.2s ease;
-}
-
-.tab-btn:hover {
-    background-color: rgba(56, 189, 248, 0.1);
-    color: var(--text-main);
-}
-
-.tab-btn.active {
-    background-color: var(--accent-blue);
-    color: var(--bg-dark);
-    border-color: var(--accent-blue);
-}
-
-/* MAIN CONTENT (Centro) */
-.main-content {
-    flex-grow: 1;
-    background-color: var(--bg-dark);
-    padding: 20px;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
-.progress-header {
-    background-color: var(--bg-card);
-    padding: 15px;
-    border-radius: 8px;
-    border: 1px solid var(--border-color);
-}
-
-.progress-header h3 {
-    font-size: 1rem;
-    margin-bottom: 8px;
-    display: flex;
-    justify-content: space-between;
-}
-
-.progress-bar-container {
-    background-color: var(--border-color);
-    height: 8px;
-    border-radius: 4px;
     overflow: hidden;
 }
 
-.progress-bar {
-    background-color: var(--accent-green);
-    height: 100%;
-    width: 0%;
-    transition: width 0.3s ease;
-}
-
-.checklist-section, .inputs-section {
-    background-color: var(--bg-card);
-    padding: 15px;
-    border-radius: 8px;
-    border: 1px solid var(--border-color);
-}
-
-/* CHECKLIST COM ALTURA CONTROLADA E SCROLL ELEGANTE */
-.checklist-container {
+/* Menu Lateral (Sidebar) */
+.sidebar {
+    width: 260px;
+    background-color: #111b2b;
+    border-right: 1px solid #1e293b;
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    max-height: 180px;
+    padding: 20px;
+    flex-shrink: 0;
+}
+
+/* Conteúdo Principal */
+.main-content {
+    flex-grow: 1;
+    display: flex;
+    gap: 20px;
+    padding: 20px;
     overflow-y: auto;
-    padding-right: 4px;
+    background-color: #0b131e;
 }
 
-.check-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-size: 0.95rem;
-    background: rgba(255, 255, 255, 0.02);
-    padding: 8px 12px;
-    border-radius: 6px;
-    border: 1px solid transparent;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.check-item:hover {
-    background: rgba(255, 255, 255, 0.04);
-    border-color: var(--border-color);
-}
-
-.check-item input[type="checkbox"] {
-    accent-color: var(--accent-green);
-    width: 18px;
-    height: 18px;
-    cursor: pointer;
-}
-
-.check-item label {
-    cursor: pointer;
-    transition: color 0.2s;
-    user-select: none;
-}
-
-.check-item.completed {
-    background: rgba(74, 222, 128, 0.05);
-    border-color: rgba(74, 222, 128, 0.2);
-}
-
-.check-item.completed label {
-    text-decoration: line-through;
-    color: var(--text-muted);
-    opacity: 0.75;
-}
-
-.flight-phase-toggle {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 12px;
-}
-
-.phase-btn {
+/* Painéis de Informação / Colunas */
+.info-panel {
+    background-color: #111b2b;
+    border: 1px solid #1e293b;
+    border-radius: 8px;
+    padding: 20px;
     flex: 1;
-    background-color: var(--bg-dark);
-    border: 1px solid var(--border-color);
-    color: var(--text-muted);
-    padding: 8px;
-    border-radius: 6px;
-    font-weight: bold;
-    cursor: pointer;
-    font-size: 0.85rem;
-    transition: all 0.2s;
-}
-
-.phase-btn.active {
-    background-color: #f59e0b;
-    color: var(--bg-dark);
-    border-color: #f59e0b;
-}
-
-.checklist-section h3, .simbrief-data h3, .converter-data h3 {
-    font-size: 1rem;
-    margin-bottom: 12px;
-    color: var(--accent-blue);
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: 6px;
-}
-
-.form-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 10px;
-}
-
-.input-group {
+    min-width: 300px;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 15px;
 }
 
-.input-group label {
-    font-size: 0.8rem;
-    color: var(--text-muted);
-    font-weight: 600;
-}
-
-.input-group input, .input-group select {
-    background-color: var(--bg-dark);
-    border: 1px solid var(--border-color);
-    color: var(--text-main);
-    padding: 8px 10px;
-    border-radius: 4px;
-    font-size: 0.9rem;
-}
-
-.input-group input:focus, .input-group select:focus {
-    border-color: var(--accent-blue);
-    outline: none;
-}
-
+/* Seções internas */
 .phraseology-section {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 15px;
-}
-
-.phrase-box {
-    background-color: var(--bg-card);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 12px;
-    display: flex;
-    flex-direction: column;
-}
-
-.phrase-box-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-}
-
-.phrase-box h4 {
-    font-size: 0.9rem;
-    color: var(--accent-blue);
-}
-
-.copy-btn {
-    background-color: var(--border-color);
-    color: var(--text-main);
-    border: none;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 0.8rem;
-    cursor: pointer;
-    transition: background 0.2s;
-}
-
-.copy-btn:hover {
-    background-color: var(--accent-blue);
-    color: var(--bg-dark);
-}
-
-.phrase-box textarea {
-    background-color: var(--bg-dark);
-    border: 1px solid var(--border-color);
-    color: var(--text-main);
-    padding: 10px;
-    border-radius: 4px;
-    resize: none;
-    height: 170px;
-    font-size: 1rem;
-    line-height: 1.5;
-}
-
-/* RESIZER */
-.resizer {
-    width: 6px;
-    background-color: var(--border-color);
-    cursor: col-resize;
-    transition: background 0.2s;
-}
-
-.resizer:hover, .resizer.active {
-    background-color: var(--accent-blue);
-}
-
-/* INFO PANEL (Direita) */
-.info-panel {
-    width: var(--right-panel-width);
-    min-width: 260px;
-    max-width: 600px;
-    background-color: var(--bg-card);
-    border-left: 1px solid var(--border-color);
-    padding: 15px;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.frequencies-data {
-    background-color: rgba(0, 0, 0, 0.15);
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    overflow: hidden;
-}
-
-.atc-header-bar {
-    background-color: #64748b;
-    color: #ffffff;
-    font-weight: bold;
-    font-size: 0.85rem;
-    text-align: center;
-    padding: 8px;
-    letter-spacing: 0.5px;
-}
-
-.atc-services-list {
-    display: flex;
-    flex-direction: column;
-    padding: 10px;
-    gap: 10px;
-}
-
-.atc-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 0.85rem;
-}
-
-.atc-label {
-    font-weight: bold;
-    color: var(--text-main);
-    width: 80px;
-}
-
-.atc-status-info {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.switch {
-    position: relative;
-    display: inline-block;
-    width: 34px;
-    height: 18px;
-}
-
-.switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-
-.slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background-color: var(--border-color);
-    transition: .3s;
-    border-radius: 18px;
-}
-
-.slider:before {
-    position: absolute;
-    content: "";
-    height: 12px;
-    width: 12px;
-    left: 3px;
-    bottom: 3px;
-    background-color: white;
-    transition: .3s;
-    border-radius: 50%;
-}
-
-input:checked + .slider {
-    background-color: var(--accent-green);
-}
-
-input:checked + .slider:before {
-    transform: translateX(16px);
-}
-
-.atc-freq-display {
-    font-family: monospace;
-    font-weight: bold;
-    color: var(--accent-green);
-    font-size: 0.85rem;
 }
 
 .converter-grid {
@@ -497,43 +68,50 @@ input:checked + .slider:before {
     gap: 10px;
 }
 
-/* RESPONSIVIDADE PARA CELULARES E TELAS PEQUENAS */
+
+/* ==========================================================
+   RESPONSIVIDADE PARA CELULARES E TELAS PEQUENAS (MOBILE)
+   ================================================---------- */
 @media (max-width: 1024px) {
     body {
-        overflow-y: auto;
-        height: auto;
+        overflow-y: auto !important;
+        height: auto !important;
     }
 
     .app-container {
-        flex-direction: column;
-        height: auto;
-        width: 100%;
-        overflow-y: visible;
+        flex-direction: column !important;
+        height: auto !important;
+        width: 100% !important;
+        overflow-y: visible !important;
     }
 
     .sidebar {
-        width: 100%;
-        height: auto;
+        width: 100% !important;
+        height: auto !important;
+        flex-shrink: unset !important;
     }
 
     .main-content {
-        height: auto;
-        overflow-y: visible;
-        flex-grow: unset;
+        height: auto !important;
+        overflow-y: visible !important;
+        flex-grow: unset !important;
+        width: 100% !important;
+        flex-direction: column !important;
+        padding: 10px !important;
     }
 
     .info-panel {
-        width: 100%;
-        min-width: 100%;
-        max-width: 100%;
-        height: auto;
+        width: 100% !important;
+        min-width: 100% !important;
+        max-width: 100% !important;
+        height: auto !important;
     }
 
     .phraseology-section {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr !important;
     }
 
     .converter-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr !important;
     }
 }
