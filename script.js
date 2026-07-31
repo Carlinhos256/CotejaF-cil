@@ -120,7 +120,7 @@ async function importSimBrief() {
     const paramName = /^\d+$/.test(userId) ? 'userid' : 'username';
 
     // URL DIRETA do SimBrief pedindo formato JSON, sem passar por site de terceiros
-    const url = `https://www.simbrief.com/api/xml.fetch.php?${paramName}=${userId}&json=1`;
+    const url = `https://www.simbrief.com/api/xml.fetcher.php?${paramName}=${userId}&json=1`;
 
     try {
         const response = await fetch(url);
